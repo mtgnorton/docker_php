@@ -5,3 +5,11 @@ dc build php  #当修改了某个容器的dockerfile使用该命令进行构建
  dc run --rm --entrypoint "bash -c" artisan " cd /var/www/html/chetuoche_php; php /var/www/html/chetuoche_php/think change_order_status --order_number 123123 --status 6" #tp6项目执行think命令实例
 
 docker run -it --rm -v $PWD:/tmp -w /tmp 06469247469b php #命令行执行单个php文件,06469247469b为php容器的名称
+
+docker rm $(docker ps -qa ) #删除已经停止的容器
+
+docker image rm 容器名|容器id #删除镜像
+
+docker rmi $(docker images  -qa -f "dangling=true") #删除所有虚悬镜像
+
+docker run --rm  -p 8090:8090 -v /Users/mtgnorton/Coding/vue/gf-admin-ui:/usr/src/app -w /usr/src/app   node:12 npm run dev #启动 vue项目
