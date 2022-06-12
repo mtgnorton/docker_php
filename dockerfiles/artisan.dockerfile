@@ -39,7 +39,8 @@ RUN apt-get install -y \
   && docker-php-ext-configure zip --with-libzip \
   && docker-php-ext-install zip
 
-RUN docker-php-ext-install pdo pdo_mysql
+
+RUN docker-php-ext-install pdo pdo_mysql bcmath
 
 RUN mkdir -p /usr/src/php/ext/redis \
     && curl -L https://github.com/phpredis/phpredis/archive/5.3.4.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \

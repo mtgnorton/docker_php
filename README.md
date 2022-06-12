@@ -1,83 +1,126 @@
-# docker-compose-laravel
-A pretty simplified Docker Compose workflow that sets up a LEMP network of containers for local Laravel development. You can view the full article that inspired this repo [here](https://dev.to/aschmelyun/the-beauty-of-docker-for-local-laravel-development-13c0).
+# 本地 docker php环境
 
-[![GitNFT](https://img.shields.io/badge/%F0%9F%94%AE-Open%20in%20GitNFT-darkviolet?style=flat)](https://gitnft.quine.sh/app/commits/list/repo/docker-compose-laravel)
+[![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
-## Usage
+## 内容列表
+- [安装和更新](#安装和更新)
+- [目录介绍](#目录介绍)
+- [注意事项](#注意事项)
+- [常用命令](#常用命令)
+- [新建一个laravel项目](#新建一个laravel项目)
 
-To get started, make sure you have [Docker installed](https://docs.docker.com/docker-for-mac/install/) on your system, and then clone this repository.
+## 安装和更新
+- 安装 `git clone git@github.com:mtgnorton/docker_php.git`
+- 更新 `git pull`
 
-Next, navigate in your terminal to the directory you cloned this, and spin up the containers for the web server by running `docker-compose up -d --build site`.
+## 目录介绍
+- src: 源码目录，所有的php项目放在此目录下
+- dockerfiles: 镜像脚本目录
+  - artisan.dockerfile: laravel artisan 或 tp6 think 命令 使用的镜像
+  - nginx.dockerfile: nginx 镜像
+  - composer.dockerfile: composer命令镜像
+  - php.dockerfile: php镜像
+- nginx:
+    - nginx.conf: nginx 主配置文件
+    - conf.d: 站点虚拟主机配置文件
+## 注意事项
+1. 在php的配置文件中，mysql的连接地址为：`mysql`,redis的连接地址为：`redis`,不是localhost或127.0.0.1
+2. 修改了某个镜像文件后，使用`dc build 镜像文件名称`进行重新构建,需要安装某个扩展的时候需要修改镜像文件
+## 常用命令
+- 启动，停止，重启环境
+  - 启动： docker-compose up    （可选参数 -d 后台启动）
+  - 停止： docker-compose stop
+  - 重启： docker-compose restart 
+- 查看日志
+docker-compose logs -f
+- php环境相关
+  - 使用composer： `dc run  --rm  --entrypoint "bash -c"   composer "cd /var/www/html/项目目录名称 && composer install --ignore-platform-reqs --no-scripts"`
+  - 使用artisan： `dc run --rm --entrypoint "bash -c" artisan " cd /var/www/html/项目目录名称; php /var/www/html/项目目录名称/artisan 命令名称"` 此处artisan可替换为think
+  
+    
+## 新建一个laravel-admin项目
 
-After that completes, follow the steps from the [src/README.md](src/README.md) file to get your Laravel project added in (or create a new blank one).
+1. 在src目录下，执行`git clone git@github.com:mtgnorton/laravel_admin_base.git laravel_admin_base_test `
+2. 进入laravel_admin_base_test,执行`mv .env.example .env`
+3. 修改.env配置文件类似如下
+```azure
+APP_NAME=Laravel
+APP_ENV=local
+APP_KEY=base64:TOjhFnjw4tF6nNR4+vd3ISs/jgyLht8tI0AY+tLK+Qg=
+APP_DEBUG=true
+APP_URL=http://localhost
 
-Bringing up the Docker Compose network with `site` instead of just using `up`, ensures that only our site's containers are brought up at the start, instead of all of the command containers as well. The following are built for our web server, with their exposed ports detailed:
+LOG_CHANNEL=stack
 
-- **nginx** - `:80`
-- **mysql** - `:3306`
-- **php** - `:9000`
-- **redis** - `:6379`
-- **mailhog** - `:8025` 
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=laravel_admin_base_test
+DB_USERNAME=root
+DB_PASSWORD=secret
 
-Three additional containers are included that handle Composer, NPM, and Artisan commands *without* having to have these platforms installed on your local computer. Use the following command examples from your project root, modifying them to fit your particular use case.
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
 
-- `docker-compose run --rm composer update`
-- `docker-compose run --rm npm run dev`
-- `docker-compose run --rm artisan migrate`
+REDIS_HOST=redis
+REDIS_PASSWORD=null
+REDIS_PORT=6379
 
-## Permissions Issues
+MAIL_DRIVER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS=null
+MAIL_FROM_NAME="${APP_NAME}"
 
-If you encounter any issues with filesystem permissions while visiting your application or running a container command, try completing one of the sets of steps below.
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=
 
-**If you are using your server or local environment as the root user:**
+PUSHER_APP_ID=
+PUSHER_APP_KEY=
+PUSHER_APP_SECRET=
+PUSHER_APP_CLUSTER=mt1
 
-- Bring any container(s) down with `docker-compose down`
-- Rename `docker-compose.root.yml` file to `docker-compose.root.yml`, replacing the previous one
-- Re-build the containers by running `docker-compose build --no-cache`
-
-**If you are using your server or local environment as a user that is not root:**
-
-- Bring any container(s) down with `docker-compose down`
-- In your terminal, run `export UID=$(id -u)` and then `export GID=$(id -g)`
-- If you see any errors about readonly variables from the above step, you can ignore them and continue
-- Re-build the containers by running `docker-compose build --no-cache`
-
-Then, either bring back up your container network or re-run the command you were trying before, and see if that fixes it.
-
-## Persistent MySQL Storage
-
-By default, whenever you bring down the Docker network, your MySQL data will be removed after the containers are destroyed. If you would like to have persistent data that remains after bringing containers down and back up, do the following:
-
-1. Create a `mysql` folder in the project root, alongside the `nginx` and `src` folders.
-2. Under the mysql service in your `docker-compose.yml` file, add the following lines:
-
+MIX_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+MIX_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
 ```
-volumes:
-  - ./mysql:/var/lib/mysql
+4. 把storage/sql下的文件导入到数据库中
+5. 执行 `dc run  --rm  --entrypoint "bash -c"   composer "cd /var/www/html/laravel_admin_base_test && composer install   --ignore-platform-reqs --no-scripts"`,安装第三方依赖
+6. 执行`dc run --rm --entrypoint "bash -c" artisan " cd/var/www/html/laravel_admin_base_test; php /var/www/html/laravel_admin_base_test/artisan key:generate"`,生成key
+7. 执行`chmod -R a+w storage`
+8. 执行 `dc run --rm --entrypoint "bash -c" artisan " cd /var/www/html/laravel_admin_base_test; php /var/www/html/laravel_admin_base_test/artisan storage:link"`
+9. 在nginx/conf.d目录下新建虚拟主机配置文件,文件名称随意，内容如下
+```azure
+server {
+listen 80;
+index index.php index.html;
+server_name base.local; # 本地域名
+root /var/www/html/laravel_admin_base/public; #项目目录
+
+location / {
+        try_files $uri $uri/ /index.php?$query_string;
+}
+
+location ~ \.php$ {
+try_files $uri =404;
+fastcgi_split_path_info ^(.+\.php)(/.+)$;
+fastcgi_pass php:9000;
+fastcgi_index index.php;
+include fastcgi_params;
+fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+fastcgi_param PATH_INFO $fastcgi_path_info;
+}
+}
 ```
-
-## Using BrowserSync with Laravel Mix
-
-If you want to enable the hot-reloading that comes with Laravel Mix's BrowserSync option, you'll have to follow a few small steps. First, ensure that you're using the updated `docker-compose.yml` with the `:3000` and `:3001` ports open on the npm service. Then, add the following to the end of your Laravel project's `webpack.mix.js` file:
-
-```javascript
-.browserSync({
-    proxy: 'site',
-    open: false,
-    port: 3000,
-});
+10. 修改host文件，将本地域名添加到hosts中
+```azure
+127.0.0.1 base_test.local
 ```
-
-From your terminal window at the project root, run the following command to start watching for changes with the npm container and its mapped ports:
-
-```bash
-docker-compose run --rm --service-ports npm run watch
-```
-
-That should keep a small info pane open in your terminal (which you can exit with Ctrl + C). Visiting [localhost:3000](http://localhost:3000) in your browser should then load up your Laravel application with BrowserSync enabled and hot-reloading active.
-
-## MailHog
-
-The current version of Laravel (8 as of today) uses MailHog as the default application for testing email sending and general SMTP work during local development. Using the provided Docker Hub image, getting an instance set up and ready is simple and straight-forward. The service is included in the `docker-compose.yml` file, and spins up alongside the webserver and database services.
-
-To see the dashboard and view any emails coming through the system, visit [localhost:8025](http://localhost:8025) after running `docker-compose up -d site`.
+11. 执行`dc restart `，因为修改了nginx配置文件后需要重启compose
