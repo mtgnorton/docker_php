@@ -38,7 +38,7 @@ docker-compose logs -f
   - 使用artisan： `dc run --rm --entrypoint "bash -c" artisan " cd /var/www/html/项目目录名称; php /var/www/html/项目目录名称/artisan 命令名称"` 此处artisan可替换为think
   
     
-## 新建一个laravel-admin项目
+## 新建一个laravel项目
 
 1. 在src目录下，执行`git clone git@github.com:mtgnorton/laravel_admin_base.git laravel_admin_base_test `
 2. 进入laravel_admin_base_test,执行`mv .env.example .env`
