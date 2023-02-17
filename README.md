@@ -123,4 +123,5 @@ fastcgi_param PATH_INFO $fastcgi_path_info;
 ```azure
 127.0.0.1 base_test.local
 ```
+  
 11. 执行`dc restart `，因为修改了nginx配置文件后需要重启compose

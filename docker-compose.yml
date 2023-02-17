@@ -2,7 +2,8 @@ version: '3'
 
 networks:
   laravel:
-
+volumes:
+  mysql8-data:
 services:
   site:
     build:
@@ -34,6 +35,7 @@ services:
       - 3306:3306
     volumes:
       - ./mysql:/var/lib/mysql
+      - ./mysql/config:/etc/mysql/conf.d
     environment:
       MYSQL_DATABASE: homestead
       MYSQL_USER: homestead
@@ -43,11 +45,30 @@ services:
       SERVICE_NAME: mysql
     networks:
       - laravel
-
+  mysql8:
+    image: mysql:8.0
+    platform: linux/amd64
+    container_name: mysql8
+    restart: unless-stopped
+    tty: true
+    ports:
+      - 3308:3306
+    volumes:
+      - mysql8-data:/var/lib/mysql
+      - ./mysql8/config:/etc/mysql/conf.d
+    environment:
+      MYSQL_DATABASE: homestead
+      MYSQL_USER: homestead
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql8
+    networks:
+      - laravel
   php:
     build:
       context: ./dockerfiles
-      dockerfile: php.dockerfile
+      dockerfile: php8.dockerfile
       args:
         - UID=${UID:-1000}
         - GID=${GID:-1000}
@@ -107,10 +128,9 @@ services:
     container_name: artisan
     volumes:
       - ./src:/var/www/html:delegated
-    depends_on:
-      - mysql
     working_dir: /var/www/html
     entrypoint: ['php', '/var/www/html/artisan']
     networks:
       - laravel
+      
 

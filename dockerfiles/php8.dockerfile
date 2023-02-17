@@ -1,4 +1,4 @@
-FROM php:7.3-fpm-alpine
+FROM php:8.0.5-fpm-alpine
 
 ARG UID
 ARG GID
@@ -8,7 +8,6 @@ ENV UID=${UID}
 ENV GID=${GID}
 
 RUN mkdir -p /var/www/html
- 
 
 WORKDIR /var/www/html
 
@@ -28,7 +27,7 @@ RUN apk --no-cache update \
         freetype-dev \
         libjpeg-turbo-dev \
         libpng-dev && \
-    docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-png-dir=/usr/include/ 
+    docker-php-ext-configure gd
 
 
 RUN docker-php-ext-install pdo pdo_mysql bcmath gd
@@ -36,7 +35,7 @@ RUN docker-php-ext-install pdo pdo_mysql bcmath gd
 RUN mkdir -p /usr/src/php/ext/redis \
     && curl -L https://github.com/phpredis/phpredis/archive/5.3.4.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
     && echo 'redis' >> /usr/src/php-available-exts \
-    && docker-php-ext-install redis 
+    && docker-php-ext-install redis
 
 
 CMD ["php-fpm", "-y", "/usr/local/etc/php-fpm.conf", "-R"]
